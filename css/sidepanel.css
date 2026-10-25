@@ -1,0 +1,269 @@
+/* sidepanel.css */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 13px;
+    color: #222;
+    background-color: #f5f6f7;
+    display: flex;
+    flex-direction: column;
+}
+
+button {
+    font: inherit;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.sp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 14px 8px;
+    background-color: #fff;
+    border-bottom: 1px solid #e6e6e6;
+}
+
+.sp-header h1 {
+    font-size: 15px;
+}
+
+.sp-model {
+    margin-top: 2px;
+    font-size: 12px;
+    color: #777;
+}
+
+.sp-link {
+    border: none;
+    background: none;
+    color: #4CAF50;
+}
+
+.sp-batches {
+    padding: 10px 14px;
+    background-color: #fff;
+    border-bottom: 1px solid #e6e6e6;
+    max-height: 32vh;
+    overflow-y: auto;
+}
+
+.sp-section-title {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.sp-muted {
+    font-weight: normal;
+    color: #777;
+}
+
+.sp-batch-list {
+    list-style: none;
+}
+
+.sp-batch {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+    border-top: 1px solid #f0f0f0;
+}
+
+.sp-batch:first-child {
+    border-top: none;
+}
+
+.sp-batch input {
+    margin-top: 3px;
+}
+
+.sp-batch label {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.sp-batch-title {
+    font-weight: 500;
+}
+
+.sp-batch-seeds {
+    color: #777;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sp-batch-delete {
+    border: none;
+    background: none;
+    color: #999;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.sp-batch-delete:hover {
+    color: #d33;
+}
+
+.sp-batch-delete.sp-confirm {
+    color: #d33;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.sp-empty, .sp-hint {
+    color: #777;
+    line-height: 1.5;
+}
+
+.sp-hint {
+    margin-top: 6px;
+    color: #b07a00;
+}
+
+.sp-chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sp-msg {
+    max-width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    line-height: 1.6;
+    word-wrap: break-word;
+}
+
+.sp-msg-user {
+    align-self: flex-end;
+    background-color: #4CAF50;
+    color: #fff;
+    white-space: pre-wrap;
+}
+
+.sp-msg-assistant {
+    align-self: stretch;
+    background-color: #fff;
+    border: 1px solid #e6e6e6;
+}
+
+.sp-msg-assistant h3 {
+    font-size: 14px;
+    margin: 8px 0 4px;
+}
+
+.sp-msg-assistant p {
+    margin: 4px 0;
+}
+
+.sp-msg-assistant ul, .sp-msg-assistant ol {
+    margin: 4px 0 4px 20px;
+}
+
+.sp-msg-assistant code {
+    background-color: #f2f2f2;
+    padding: 0 3px;
+    border-radius: 3px;
+}
+
+.sp-msg-assistant pre {
+    background-color: #f7f7f7;
+    padding: 6px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 12px;
+}
+
+.sp-msg-notice {
+    align-self: center;
+    color: #b07a00;
+    background-color: #fff8e6;
+    font-size: 12px;
+}
+
+.sp-msg-error {
+    align-self: stretch;
+    color: #c62828;
+    background-color: #fdecea;
+    white-space: pre-wrap;
+}
+
+.sp-thinking {
+    color: #999;
+}
+
+.sp-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 14px 8px;
+}
+
+.sp-chip {
+    border: 1px solid #cfe8d0;
+    background-color: #fff;
+    color: #2e7d32;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: 12px;
+}
+
+.sp-input {
+    padding: 10px 14px 12px;
+    background-color: #fff;
+    border-top: 1px solid #e6e6e6;
+}
+
+.sp-input textarea {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px;
+    font: inherit;
+    resize: vertical;
+}
+
+.sp-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.sp-primary, .sp-secondary {
+    border-radius: 4px;
+    padding: 6px 14px;
+}
+
+.sp-primary {
+    border: none;
+    background-color: #4CAF50;
+    color: #fff;
+}
+
+.sp-secondary {
+    border: 1px solid #ccc;
+    background-color: #fff;
+    color: #444;
+}

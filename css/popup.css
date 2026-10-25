@@ -123,9 +123,12 @@ body {
     margin-right: 0;
 }
 
+.input-field button.secondary-button {
+    background-color: #fff;
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
 
-
-
-
-
-
+.input-field button.secondary-button:hover {
+    background-color: #f2f9f2;
+}

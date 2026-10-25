@@ -28,7 +28,7 @@
     font-size: 16px;
     margin-right: 10px;
     font-weight: bold;
-    width: 100px;
+    width: 140px;
     text-align: right;
 }
 
@@ -68,11 +68,65 @@
     width: 230px;
 }
 
-.save-button {
-    padding: 8px 20px;
-    background-color: #45a049;
-    color: #fff;
-    border: none;
+.input-container-top {
+    align-items: flex-start;
+}
+
+.input-container-top .label {
+    padding-top: 8px;
+}
+
+select.input-field {
+    background-color: #fff;
+}
+
+.model-box {
+    width: 350px;
+}
+
+.model-search {
+    width: 100%;
+    padding: 6px 8px;
+    margin-bottom: 6px;
+    border: 1px solid #ccc;
     border-radius: 4px;
+}
+
+.model-row {
+    display: flex;
+    gap: 6px;
+}
+
+.model-wrapper {
+    flex: 1;
+    width: auto;
+}
+
+.model-wrapper .input-field {
+    width: 100%;
+}
+
+.refresh-button {
+    padding: 0 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
     cursor: pointer;
+}
+
+.model-status {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #666;
+}
+
+.model-status-error {
+    color: #c62828;
+}
+
+.save-status {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #45a049;
 }

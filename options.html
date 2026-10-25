@@ -9,7 +9,7 @@
 <body>
 <div class="container">
     <h1 class="title">插件配置</h1>
-    <form class="form">
+    <form class="form" autocomplete="off">
         <div class="input-container">
             <label for="level1" class="label">采集层级:</label>
             <div class="input-wrapper">
@@ -24,46 +24,44 @@
             </div>
         </div>
         <div class="input-container">
-            <label for="wpUserName" class="label">WP账号:</label>
+            <label for="provider" class="label">AI 服务:</label>
             <div class="input-wrapper">
-                <input type="text" id="wpUserName" class="input-field" placeholder="请输入WP账号">
+                <select id="provider" class="input-field">
+                    <option value="anthropic">Anthropic</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="openrouter">OpenRouter</option>
+                </select>
             </div>
         </div>
         <div class="input-container">
-            <label for="wpAppPassword" class="label">WP应用密码:</label>
+            <label for="apiKey" class="label">API Key:</label>
             <div class="input-wrapper">
-                <input type="password" id="wpAppPassword" class="input-field" placeholder="请输入WP应用密码">
+                <input type="password" id="apiKey" class="input-field" placeholder="填写后自动拉取模型列表">
+            </div>
+        </div>
+        <div class="input-container input-container-top">
+            <label for="model" class="label">模型:</label>
+            <div class="model-box">
+                <input type="search" id="modelSearch" class="model-search" placeholder="搜索模型" hidden>
+                <div class="model-row">
+                    <div class="input-wrapper model-wrapper">
+                        <select id="model" class="input-field"></select>
+                    </div>
+                    <button id="refreshModels" type="button" class="refresh-button">刷新</button>
+                </div>
+                <div id="modelStatus" class="model-status"></div>
             </div>
         </div>
         <div class="input-container">
-            <label for="wpPostApi" class="label">WP发帖接口:</label>
+            <label for="analysisPrompt" class="label">分析提示词:</label>
             <div class="input-wrapper">
-                <input type="text" id="wpPostApi" class="input-field" placeholder="请输入WP发帖接口">
+                <textarea id="analysisPrompt" class="input-field" rows="8" placeholder="可选。留空则使用默认的关键词分析提示词"></textarea>
             </div>
         </div>
-        <div class="input-container">
-            <label for="createPrompt" class="label">生成prompt:</label>
-            <div class="input-wrapper">
-                <textarea id="createPrompt" class="input-field" rows="8" placeholder="请输入生成文章prompt"></textarea>
-            </div>
-        </div>
-        <div class="input-container">
-            <label for="cleanPrompt" class="label">洗稿prompt:</label>
-            <div class="input-wrapper">
-                <textarea id="cleanPrompt" class="input-field" rows="8" placeholder="请输入清洗文章prompt"></textarea>
-            </div>
-        </div>
-
-        <div class="input-container">
-            <label for="collectTag" class="label">采集标签:</label>
-            <div class="input-wrapper">
-                <textarea type="text" id="collectTag" class="input-field" rows="3" placeholder="请输入采集的标签,保证标签唯一,支持querySelector,格式:{title:'div.title',content:'div.content'}"></textarea>
-            </div>
-        </div>
-
-        <button id="saveButton" class="save-button">保存设置</button>
+        <div id="saveStatus" class="save-status">修改会自动保存</div>
     </form>
 </div>
+<script type="text/javascript" src="js/llm.js"></script>
 <script type="text/javascript" src="js/options.js"></script>
 </body>
 </html>

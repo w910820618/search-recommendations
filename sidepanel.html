@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>关键词 AI 分析</title>
+    <link rel="stylesheet" href="css/sidepanel.css">
+</head>
+<body>
+<header class="sp-header">
+    <div>
+        <h1>关键词 AI 分析</h1>
+        <div id="modelInfo" class="sp-model"></div>
+    </div>
+    <button id="openOptions" class="sp-link" type="button">设置</button>
+</header>
+
+<section class="sp-batches">
+    <div class="sp-section-title">
+        <span>采集记录</span>
+        <span id="selectionInfo" class="sp-muted"></span>
+    </div>
+    <ul id="batchList" class="sp-batch-list"></ul>
+    <p id="batchEmpty" class="sp-empty">还没有采集记录。到小红书、抖音等页面点插件图标「提取推荐词」，采集完成后会自动出现在这里。</p>
+    <p id="batchLockedHint" class="sp-hint" hidden>对话进行中，所选数据已锁定。点「新对话」可重新选择。</p>
+</section>
+
+<main id="chatLog" class="sp-chat"></main>
+
+<section class="sp-quick">
+    <button type="button" class="sp-chip" data-prompt="请把这些关键词按用户需求/主题进行归类，每类给出代表性关键词和这一类的搜索意图。">主题归类</button>
+    <button type="button" class="sp-chip" data-prompt="请从这些关键词中找出有价值的长尾词和细分需求，说明每个需求背后用户真正想解决的问题。">挖掘长尾需求</button>
+    <button type="button" class="sp-chip" data-prompt="基于这些关键词，给我 10 个具体的内容选题，每个选题说明对应的关键词和切入角度。">内容选题</button>
+</section>
+
+<footer class="sp-input">
+    <textarea id="chatInput" rows="3" placeholder="问点什么，例如：这些词里哪些需求最集中？（Enter 发送，Shift+Enter 换行）"></textarea>
+    <div class="sp-actions">
+        <button id="newChat" type="button" class="sp-secondary">新对话</button>
+        <button id="stopButton" type="button" class="sp-secondary" hidden>停止</button>
+        <button id="sendButton" type="button" class="sp-primary">发送</button>
+    </div>
+</footer>
+
+<script type="text/javascript" src="js/llm.js"></script>
+<script type="text/javascript" src="js/sidepanel.js"></script>
+</body>
+</html>
