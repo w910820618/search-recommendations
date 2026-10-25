@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>关键词 AI 分析</title>
+    <title>采集记录与 AI 分析</title>
     <link rel="stylesheet" href="css/sidepanel.css">
 </head>
 <body>
 <header class="sp-header">
     <div>
-        <h1>关键词 AI 分析</h1>
+        <h1>采集记录与 AI 分析</h1>
         <div id="modelInfo" class="sp-model"></div>
     </div>
     <button id="openOptions" class="sp-link" type="button">设置</button>
@@ -21,11 +21,31 @@
         <span id="selectionInfo" class="sp-muted"></span>
     </div>
     <ul id="batchList" class="sp-batch-list"></ul>
-    <p id="batchEmpty" class="sp-empty">还没有采集记录。到小红书、抖音等页面点插件图标「提取推荐词」，采集完成后会自动出现在这里。</p>
+    <p id="batchEmpty" class="sp-empty">还没有采集记录。到小红书、抖音、百度、Google 等页面点插件图标「提取推荐词」，开始采集后就会出现在这里，可勾选后导出 CSV / Excel。</p>
     <p id="batchLockedHint" class="sp-hint" hidden>对话进行中，所选数据已锁定。点「新对话」可重新选择。</p>
+    <div class="sp-export">
+        <button id="exportCsv" type="button" class="sp-secondary">导出 CSV</button>
+        <button id="exportXlsx" type="button" class="sp-secondary">导出 Excel</button>
+    </div>
 </section>
 
+<div id="noKeyBanner" class="sp-nokey" hidden>
+    <span id="noKeyText"></span>
+    <button id="noKeySettings" type="button" class="sp-link">去设置</button>
+</div>
+
 <main id="chatLog" class="sp-chat"></main>
+
+<div id="noKeyDialog" class="sp-dialog" hidden>
+    <div class="sp-dialog-box" role="dialog" aria-modal="true" aria-labelledby="noKeyDialogTitle">
+        <h2 id="noKeyDialogTitle">当前没有 API Key</h2>
+        <p id="noKeyDialogText"></p>
+        <div class="sp-actions">
+            <button id="noKeyDialogClose" type="button" class="sp-secondary">知道了</button>
+            <button id="noKeyDialogSettings" type="button" class="sp-primary">去设置</button>
+        </div>
+    </div>
+</div>
 
 <section class="sp-quick">
     <button type="button" class="sp-chip" data-prompt="请把这些关键词按用户需求/主题进行归类，每类给出代表性关键词和这一类的搜索意图。">主题归类</button>
@@ -43,6 +63,7 @@
 </footer>
 
 <script type="text/javascript" src="js/llm.js"></script>
+<script type="text/javascript" src="js/export.js"></script>
 <script type="text/javascript" src="js/sidepanel.js"></script>
 </body>
 </html>

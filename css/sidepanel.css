@@ -267,3 +267,65 @@ button:disabled {
     background-color: #fff;
     color: #444;
 }
+
+.sp-export {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.sp-export button {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.sp-nokey {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background-color: #fff8e6;
+    color: #8a5a00;
+    border-bottom: 1px solid #f3e2b3;
+    line-height: 1.5;
+}
+
+.sp-nokey .sp-link {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.sp-nokey[hidden], .sp-dialog[hidden], .sp-export[hidden] {
+    display: none;
+}
+
+.sp-dialog {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 10;
+}
+
+.sp-dialog-box {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    width: 100%;
+    max-width: 320px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+}
+
+.sp-dialog-box h2 {
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+.sp-dialog-box p {
+    color: #555;
+    line-height: 1.6;
+}

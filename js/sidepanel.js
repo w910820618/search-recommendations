@@ -18,6 +18,8 @@ let settings = {};
 let batches = [];
 let selectedIds = new Set();
 let selectionInitialized = false;
+let pendingDeleteId = null;
+let pendingDeleteTimer = null;
 
 // 当前对话：开始后锁定服务商、模型和关键词数据，保证多轮消息格式一致
 let history = [];
@@ -38,13 +40,60 @@ function loadSettings()
     chrome.storage.local.get('setting', function(result) {
         settings = result.setting || {};
         const config = getProviderConfig();
-        const info = document.getElementById('modelInfo');
-        if (!config.apiKey || !config.model) {
-            info.textContent = '未配置 ' + config.label + ' 的 API Key 或未选择模型，请点右上角「设置」';
-        } else {
-            info.textContent = config.label + ' · ' + config.model;
+        const missing = getMissingConfig(config);
+        document.getElementById('modelInfo').textContent = missing ? 'AI 分析未启用' : config.label + ' · ' + config.model;
+        document.getElementById('noKeyBanner').hidden = !missing;
+        if (missing) {
+            document.getElementById('noKeyText').textContent = missing.title + '，AI 分析暂不可用；采集和导出不受影响。';
         }
     });
+}
+
+/**
+ * AI 分析缺少的配置；没有 API Key 时其余功能照常使用，只有 AI 分析不可用
+ */
+function getMissingConfig(config)
+{
+    if (!config.apiKey) {
+        return { title: '当前没有 API Key', text: 'AI 分析需要先在设置中填写 ' + config.label + ' 的 API Key 并选择模型。采集推荐词、导出 CSV / Excel 不受影响。' };
+    }
+    if (!config.model) {
+        return { title: '还没有选择模型', text: '已填写 ' + config.label + ' 的 API Key，请到设置中选择一个模型后再进行 AI 分析。' };
+    }
+    return null;
+}
+
+function showNoKeyDialog(missing)
+{
+    document.getElementById('noKeyDialogTitle').textContent = missing.title;
+    document.getElementById('noKeyDialogText').textContent = missing.text;
+    document.getElementById('noKeyDialog').hidden = false;
+    document.getElementById('noKeyDialogSettings').focus();
+}
+
+function hideNoKeyDialog()
+{
+    document.getElementById('noKeyDialog').hidden = true;
+}
+
+/**
+ * 导出勾选的采集记录
+ */
+function exportSelected(format)
+{
+    const selected = getSelectedBatches();
+    if (selected.length === 0) return;
+    const rows = batchesToRows(selected, platformName);
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const stamp = d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes());
+    const source = selected.length === 1 ? platformName(selected[0].platform) : selected.length + '批';
+    const filename = '关键词_' + source + '_' + stamp;
+    if (format === 'csv') {
+        downloadFile(buildCsv(rows), filename + '.csv', 'text/csv;charset=utf-8');
+    } else {
+        downloadFile(buildXlsx(rows), filename + '.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    }
 }
 
 /**
@@ -125,7 +174,8 @@ function renderBatches()
         label.htmlFor = checkbox.id;
         const title = document.createElement('div');
         title.className = 'sp-batch-title';
-        title.textContent = platformName(batch.platform) + ' · ' + formatTime(batch.time) + ' · ' + batch.level + '级 · ' + batch.items.length + '条';
+        title.textContent = platformName(batch.platform) + ' · ' + formatTime(batch.time) + ' · ' + batch.level + '级 · ' + batch.items.length + '条'
+            + (batch.status === 'collecting' ? ' · 采集中…' : '');
         const seeds = document.createElement('div');
         seeds.className = 'sp-batch-seeds';
         seeds.textContent = batch.seeds.slice(0, 3).join('、') + (batch.seeds.length > 3 ? ' 等' + batch.seeds.length + '个种子词' : '');
@@ -137,19 +187,23 @@ function renderBatches()
         deleteButton.type = 'button';
         deleteButton.className = 'sp-batch-delete';
         deleteButton.title = '删除这条采集记录';
-        deleteButton.textContent = '×';
+        deleteButton.textContent = batch.id === pendingDeleteId ? '确认删除' : '×';
+        deleteButton.classList.toggle('sp-confirm', batch.id === pendingDeleteId);
         deleteButton.disabled = locked;
         deleteButton.addEventListener('click', function() {
             // 点两次才删除：第一次点击变成「确认删除」，3 秒内再点一次生效
-            if (!deleteButton.classList.contains('sp-confirm')) {
-                deleteButton.classList.add('sp-confirm');
-                deleteButton.textContent = '确认删除';
-                setTimeout(function() {
-                    deleteButton.classList.remove('sp-confirm');
-                    deleteButton.textContent = '×';
+            // 待确认状态记在列表外，采集中列表频繁重绘也不会丢失
+            clearTimeout(pendingDeleteTimer);
+            if (pendingDeleteId !== batch.id) {
+                pendingDeleteId = batch.id;
+                pendingDeleteTimer = setTimeout(function() {
+                    pendingDeleteId = null;
+                    renderBatches();
                 }, 3000);
+                renderBatches();
                 return;
             }
+            pendingDeleteId = null;
             chrome.storage.local.get('collect_batches', function(result) {
                 const remaining = (result.collect_batches || []).filter(item => item.id !== batch.id);
                 chrome.storage.local.set({ 'collect_batches': remaining });
@@ -176,6 +230,8 @@ function renderSelectionInfo()
     const selected = getSelectedBatches();
     const count = selected.reduce((sum, batch) => sum + batch.items.length, 0);
     document.getElementById('selectionInfo').textContent = selected.length > 0 ? '已选 ' + selected.length + ' 批 / ' + count + ' 个词' : '';
+    document.getElementById('exportCsv').disabled = selected.length === 0;
+    document.getElementById('exportXlsx').disabled = selected.length === 0;
 }
 
 /**
@@ -202,8 +258,9 @@ async function sendMessage(text)
 
     if (!conversation) {
         const config = getProviderConfig();
-        if (!config.apiKey || !config.model) {
-            appendMessage('error', '请先点右上角「设置」，填写 ' + config.label + ' 的 API Key 并选择模型。');
+        const missing = getMissingConfig(config);
+        if (missing) {
+            showNoKeyDialog(missing);
             return;
         }
         const selected = getSelectedBatches();
@@ -249,8 +306,11 @@ async function sendMessage(text)
         }
     };
 
+    // 记住本轮所属的对话；若期间点了「新对话」，返回的结果直接丢弃，不写入新对话
+    const turnHistory = history;
     try {
         const result = conversation.provider === 'anthropic' ? await streamAnthropic(request) : await streamOpenAI(request);
+        if (turnHistory !== history) return;
         bubble.innerHTML = replyText ? renderMarkdown(replyText) : '<span class="sp-thinking">（没有返回文字内容）</span>';
         if (result.stopReason === 'refusal') {
             // 被安全策略拒绝：本轮作废，不计入对话，已输出的部分内容也一并丢弃
@@ -264,10 +324,10 @@ async function sendMessage(text)
             }
         }
     } catch (error) {
+        if (turnHistory !== history) return;
         history.pop();
         if (error.name === 'AbortError') {
-            // 点「新对话」中断时对话区已清空，不再提示
-            if (bubble.isConnected) appendMessage('notice', '已停止，本轮未计入对话。');
+            appendMessage('notice', '已停止，本轮未计入对话。');
         } else {
             if (!replyText) bubble.remove();
             appendMessage('error', '请求失败：' + error.message);
@@ -401,6 +461,26 @@ function renderMarkdown(text)
 
 document.getElementById('openOptions').addEventListener('click', function() {
     chrome.runtime.openOptionsPage();
+});
+document.getElementById('noKeySettings').addEventListener('click', function() {
+    chrome.runtime.openOptionsPage();
+});
+document.getElementById('noKeyDialogSettings').addEventListener('click', function() {
+    hideNoKeyDialog();
+    chrome.runtime.openOptionsPage();
+});
+document.getElementById('noKeyDialogClose').addEventListener('click', hideNoKeyDialog);
+document.getElementById('noKeyDialog').addEventListener('click', function(event) {
+    if (event.target.id === 'noKeyDialog') hideNoKeyDialog();
+});
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') hideNoKeyDialog();
+});
+document.getElementById('exportCsv').addEventListener('click', function() {
+    exportSelected('csv');
+});
+document.getElementById('exportXlsx').addEventListener('click', function() {
+    exportSelected('xlsx');
 });
 sendButton.addEventListener('click', function() {
     sendMessage(chatInput.value);

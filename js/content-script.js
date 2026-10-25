@@ -5,6 +5,8 @@
 	let keywords = '';
 	let keywordList = [];
 	let seedList = [];
+	let currentBatchId = null;
+	let saveQueue = Promise.resolve();
 	let collectKeywordList  = [];
 	let collectLevel = 1;
 	let currentDomain = window.location.hostname;
@@ -125,6 +127,7 @@
 					}
 				}
 				console.log(text);
+				saveCollectBatch('collecting');
 			}
 			kwIndex++;
 			if(kwIndex >= keywordList.length)
@@ -133,7 +136,7 @@
 				downloadMarkdown(markdown);
 				console.log(markdown);
 				saveCsv(csvContent);
-				saveCollectBatch();
+				saveCollectBatch('done');
 				return;
 			}
 			await searchByCharCode();
@@ -234,6 +237,10 @@
 
 			console.log(keywordList);
 			console.log(kwIndex);
+			// 开始采集时读取最新的采集层级，并立即创建一条「采集中」的记录
+			collectLevel = await getCollectLevel();
+			currentBatchId = null;
+			saveCollectBatch('collecting');
 			await searchByCharCode();
 			console.log("收集关键词数组：" + collectKeywordList);
 		}
@@ -275,23 +282,55 @@
 	}
 
 	/**
-	 * 保存本次采集结果，供侧边栏AI分析使用
+	 * 保存本次采集结果，供侧边栏导出和AI分析使用
+	 * 采集开始时创建记录，之后边采集边更新，侧边栏可实时看到进度
+	 * @param status collecting-采集中，done-已完成
 	 */
-	function saveCollectBatch()
+	function saveCollectBatch(status)
 	{
+		if (!currentBatchId) currentBatchId = Date.now().toString();
 		let batch = {
-			'id': Date.now().toString(),
+			'id': currentBatchId,
 			'platform': currentDomain,
 			'seeds': seedList.slice(),
 			'level': collectLevel,
-			'time': Date.now(),
+			'time': parseInt(currentBatchId, 10),
+			'status': status,
 			'items': collectKeywordList.slice()
 		};
-		chrome.storage.local.get('collect_batches', function(result) {
-			let batches = result.collect_batches || [];
-			batches.unshift(batch);
-			chrome.storage.local.set({ 'collect_batches': batches }, function() {
-				console.log("采集结果已保存，共" + batch.items.length + "条");
+		// 依次写入，避免多次读改写互相覆盖
+		saveQueue = saveQueue.then(function() {
+			return new Promise(function(resolve) {
+				chrome.storage.local.get('collect_batches', function(result) {
+					let batches = result.collect_batches || [];
+					let index = batches.findIndex(item => item.id === batch.id);
+					if (index >= 0) {
+						batches[index] = batch;
+					} else if (status === 'collecting' && batch.items.length === 0) {
+						batches.unshift(batch);
+					} else {
+						// 采集过程中记录被用户删除，不再重新创建
+						resolve();
+						return;
+					}
+					chrome.storage.local.set({ 'collect_batches': batches }, function() {
+						console.log("采集记录已更新（" + status + "），共" + batch.items.length + "条");
+						resolve();
+					});
+				});
+			});
+		});
+	}
+
+	/**
+	 * 读取设置中的采集层级
+	 */
+	function getCollectLevel()
+	{
+		return new Promise(function(resolve) {
+			chrome.storage.local.get('setting', function (data) {
+				let setting = data.setting || {};
+				resolve((typeof setting.level !== 'undefined') ? parseInt(setting.level, 10) : 1);
 			});
 		});
 	}
@@ -300,6 +339,8 @@
 		console.log(message);
 		if(message.type == 'collect_search_keywords')
 		{
+			// 先回复弹窗，表示页面已收到采集任务
+			sendResponse({ 'ok': true });
 			collectSearchKeywords(message);
 		}
 	});

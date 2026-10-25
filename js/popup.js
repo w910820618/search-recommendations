@@ -51,7 +51,14 @@ function sendSearchMessage()
 {
     // 向 content-scripts.js 发送消息，包含关键词信息
     chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-        chrome.tabs.sendMessage(tabs[0].id, { keywords: keywords,type:'collect_search_keywords'});
+        chrome.tabs.sendMessage(tabs[0].id, { keywords: keywords,type:'collect_search_keywords'}, function() {
+            // 页面里没有采集脚本：不是支持的网站，或插件更新后页面还没刷新
+            if (chrome.runtime.lastError) {
+                showPopup("当前页面无法采集。请确认是在小红书、抖音、B站、知乎、百度或 Google 页面，并刷新页面后重试。");
+                return;
+            }
+            showPopup("已开始采集，可在「采集记录 / AI 分析」中查看进度和导出。");
+        });
     });
 }
 
