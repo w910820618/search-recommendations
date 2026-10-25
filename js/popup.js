@@ -1,5 +1,4 @@
-﻿let mKey = '';
-let keywords = '';
+﻿let keywords = '';
 let submitButton;
 let toolType = '';
 let createPrompt = '';
@@ -7,10 +6,7 @@ let createPrompt = '';
 document.addEventListener('DOMContentLoaded', function () {
     // 获取存储的值
     chrome.storage.local.get('setting', function (data) {
-        mKey = (typeof data.setting.mkey !== 'undefined') ? data.setting.mkey : '';
         createPrompt = (typeof data.setting.create_prompt !== 'undefined') ? data.setting.create_prompt : '';
-        // 在这里使用存储的值
-        console.log(mKey);
         chrome.runtime.sendMessage({"type":"init_setting","setting":data.setting}, function (response) {
             console.log(response.farewell)
         });
@@ -27,10 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('openOptions').addEventListener('click', function() {
         chrome.runtime.openOptionsPage();
-    });
-
-    document.getElementById("moreButton").addEventListener("click", function() {
-        chrome.tabs.create({ url: "https://www.idnsl.xyz" });
     });
 
 
@@ -84,43 +76,6 @@ function sendSearchMessage()
         chrome.tabs.sendMessage(tabs[0].id, { keywords: keywords,type:toolType});
     });
 }
-/**
- * 检查mkey合法性
- */
-function checkMKey(callback)
-{
-    fetch('https://api.kaipm.com/code/check_mkey',{
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json, */*',
-            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            'cache': 'default',
-            'x-ajax': 'true'
-        },
-        'credentials': 'include', //表示请求是否携带cookie
-        body: "mkey=" + mKey
-    })
-    // fetch()接收到的response是一个 Stream 对象
-    // response.json()是一个异步操作，取出所有内容，并将其转为 JSON 对象
-    .then(response => response.json())
-    .then(json => {
-        console.log(json)
-        submitButton.disabled = false;
-        if(json.hasOwnProperty("code") && json.code !=0)
-        {
-            showPopup(json.message);
-        }
-        else if(json.hasOwnProperty("code") && json.code ==0)
-        {
-            if(callback) callback();
-        }
-    })
-    .catch(err => {
-        submitButton.disabled = false;
-        console.log('Request Failed', err);
-        showPopup("网络请求异常,密钥验证走外网域名,可以科学上网试下!");
-    });
-}
 
 $("#submit").click(function (){
     submitButton = this;
@@ -132,15 +87,10 @@ $("#submit").click(function (){
         submitButton.disabled = false;
         return;
     }
-    else if(mKey == '')
-    {
-        showPopup("没有配置密钥,请点击右上角设置！");
-        submitButton.disabled = false;
-        return;
-    }
 
     chrome.storage.local.set({ 'keywords': keywords }, function() {
-        checkMKey(sendSearchMessage);
+        submitButton.disabled = false;
+        sendSearchMessage();
     });
 });
 
@@ -154,12 +104,6 @@ $("#pga_submit").click(function (){
         submitButton.disabled = false;
         return;
     }
-    else if(mKey == '')
-    {
-        showPopup("没有配置密钥,请点击右上角设置！");
-        submitButton.disabled = false;
-        return;
-    }
     else if(createPrompt == '')
     {
         showPopup("没有配置生成prompt,请点击右上角设置！");
@@ -167,6 +111,7 @@ $("#pga_submit").click(function (){
         return;
     }
     chrome.storage.local.set({ 'pga_keywords': keywords }, function() {
-        checkMKey(sendSearchMessage);
+        submitButton.disabled = false;
+        sendSearchMessage();
     });
 });
